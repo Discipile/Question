@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<cv.h>
+#include<opencv2\opencv.hpp>
+#include<opencv2\highgui\highgui.hpp>
+#include<opencv2\calib3d\calib3d.hpp>
+#include<opencv2\imgproc\imgproc.hpp>
+#include<opencv2\objdetect\objdetect.hpp>
+#define pointnum 8
+using namespace std;
+using namespace cv;
+
+typedef struct TP
+{
+	int x;
+	int y;
+}TP;
+template<typename T>  
+void outputMatrix(Mat x)  
+{  
+	FILE *FMATRIX;
+	FMATRIX=fopen("FMATRIX.txt","w");
+	for (int j=0;j<x.cols;j++)
+	{  
+		for (int i=0;i<x.rows;i++)  
+		{  
+			cout<<x.at<T>(i,j)<<", ";
+			fprintf(FMATRIX,"%le ",x.at<T>(i,j));
+		}  
+		cout<<endl;  
+		fprintf(FMATRIX,"\n");
+	}  
+	fclose(FMATRIX);
+} 
+int main()
+{
+	FILE *FP_005,*FP_006;
+	FP_005=fopen("005_a.txt","r");
+	FP_006=fopen("006_a.txt","r");
+	Mat image2= imread("Video0006_660_mark.bmp");
+	char sent_005[200],sent_006[200];
+	vector<Point2f> Img_005;
+	vector<Point2f> Img_006;
+	vector<Vec3f> lines; 
+	int num_005=0,num_006=0;
+	TP TP_005[pointnum],TP_006[pointnum];
+	Mat F_matrix;
+	while(!feof(FP_005))
+	{
+		fscanf(FP_005,"%s",sent_005);
+		if(num_005<pointnum)
+		{
+			sscanf(sent_005,"%d,%d",&TP_005[num_005].x,&TP_005[num_005].y);
+		}
+		num_005++;
+	}
+	while(!feof(FP_006))
+	{
+		fscanf(FP_006,"%s",sent_006);
+		if(num_006<pointnum)
+		{
+			sscanf(sent_006,"%d,%d",&TP_006[num_006].x,&TP_006[num_006].y);
+		}
+		num_006++;
+	}
+
+	for(int push_num=0;push_num<pointnum;push_num++)
+	{
+		Img_005.push_back(Point2f(float(TP_005[push_num].x),float(TP_005[push_num].y)));
+		Img_006.push_back(Point2f(float(TP_006[push_num].x),float(TP_006[push_num].y)));
+	}
+
+	F_matrix=findFundamentalMat( Img_005,Img_006,CV_FM_8POINT   );
+
+	outputMatrix<double>(F_matrix);
+	
+	fclose(FP_005);
+	fclose(FP_006);
+	system("pause");
+}
